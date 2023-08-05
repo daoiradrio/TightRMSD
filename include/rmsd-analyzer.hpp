@@ -1,0 +1,29 @@
+#ifndef RMSDANALYZER_HPP
+#define RMSDANALYZER_HPP
+
+#include <molecule.hpp>
+
+#include <string>
+#include <Eigen/Dense>
+#include <Eigen/SVD>
+
+
+
+class RMSDAnalyzer{
+
+    public:
+
+        RMSDAnalyzer();
+        ~RMSDAnalyzer();
+
+        void    compute_tight_rmsd(std::string file1, std::string file2);
+
+    private:
+
+        double  rmsd(Eigen::MatrixX3d coords1, Eigen::MatrixX3d coords2);
+        void    kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2);
+};
+
+
+
+#endif
