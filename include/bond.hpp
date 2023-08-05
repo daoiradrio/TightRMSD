@@ -5,12 +5,14 @@
 
 #include <memory>
 
+using Atom_ptr = std::shared_ptr<Atom>;
+
 
 
 struct Bond{
-    std::shared_ptr<Atom>   atom1;
-    std::shared_ptr<Atom>   atom2;
-    int                     bond_order = 0;
+    Atom_ptr    atom1;
+    Atom_ptr    atom2;
+    int         bond_order = 0;
 };
 
 

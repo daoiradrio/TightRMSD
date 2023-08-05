@@ -3,17 +3,20 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #define DIMENSION 3
+
+using Atom_ptr = std::shared_ptr<Atom>;
 
 
 
 struct Atom{
-    std::string         element;
-    int                 pse_num;
-    int                 index;
-    std::vector<double> coords;
-    std::vector<int>    bond_partners;
+    std::string             element;
+    int                     pse_num;
+    int                     index;
+    std::vector<double>     coords;
+    std::vector<Atom_ptr>   bond_partners;
 
     Atom(): coords(DIMENSION, 0.0) {}
     ~Atom(){}
