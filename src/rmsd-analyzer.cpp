@@ -12,7 +12,72 @@ RMSDAnalyzer::~RMSDAnalyzer(){};
 
 void RMSDAnalyzer::compute_tight_rmsd(std::string file1, std::string file2)
 {
+    Molecule                mol1;
+    Molecule                mol2;
+    std::vector<Atom_ptr>   eq_atoms;
+
+    mol1.compute_structure(file1);
+    mol2.compute_structure(file2);
+
     return;
+}
+
+
+
+void RMSDAnalyzer::match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
+{
+    for (Atom_ptr atom1: atoms1){
+        for (Atom_ptr atom2: atoms2){
+            continue;
+        }
+    }
+
+    return;
+}
+
+
+
+std::vector<std::vector<int>> RMSDAnalyzer::spheres(std::vector<Atom_ptr> atoms, Atom_ptr atom)
+{
+    std::vector<std::vector<int>>   spheres;
+    std::vector<int>                new_sphere;
+    std::queue<Atom_ptr>            next_atoms;
+    Atom_ptr                        next_atom;
+    int                             current_sphere_iter;
+    int                             next_sphere_iter;
+    std::vector<int>                memory;
+
+    current_sphere_iter = atom->bond_partners.size();
+    next_sphere_iter = 0;
+    memory = {atom->index};
+
+    for (Atom_ptr neighbor: atom->bond_partners){
+        next_atoms.push(neighbor);
+    }
+
+    while (!next_atoms.empty()){
+        new_sphere = {};
+        while (current_sphere_iter){
+            next_atom = next_atoms.front();
+            next_atoms.pop();
+            new_sphere.push_back(next_atom->pse_num);
+            current_sphere_iter--;
+            for (Atom_ptr neighbor: next_atom->bond_partners){
+                if (std::find(memory.begin(), memory.end(), neighbor->index) != memory.end()){
+                    continue;
+                }
+                memory.push_back(neighbor->index);
+                next_atoms.push(neighbor);
+                next_sphere_iter++;
+            }
+        }
+        std::sort(new_sphere.begin(), new_sphere.end());
+        spheres.push_back(new_sphere);
+        current_sphere_iter = next_sphere_iter;
+        next_sphere_iter = 0;
+    }
+
+    return spheres;
 }
 
 

@@ -32,8 +32,8 @@ class Molecule{
         int                     read_xyz(std::string filepath);
     
     private:
-        void                    set_connectivity();
-        int                     set_bond_order(const Atom_ptr& atom1, const Atom_ptr& atom2);
+        void    set_connectivity();
+        int     set_bond_order(const Atom_ptr& atom1, const Atom_ptr& atom2);
 };
 
 

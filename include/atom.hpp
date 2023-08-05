@@ -7,6 +7,7 @@
 
 #define DIMENSION 3
 
+struct Atom;
 using Atom_ptr = std::shared_ptr<Atom>;
 
 

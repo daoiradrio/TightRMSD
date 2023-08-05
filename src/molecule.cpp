@@ -18,7 +18,7 @@ int Molecule::compute_structure(std::string filepath){
         return 0;
     }
     this->set_connectivity();
-    return;
+    return 1;
 }
 
 

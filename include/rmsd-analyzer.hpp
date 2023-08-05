@@ -4,6 +4,9 @@
 #include <molecule.hpp>
 
 #include <string>
+#include <vector>
+#include <queue>
+#include <algorithm>
 #include <Eigen/Dense>
 #include <Eigen/SVD>
 
@@ -20,8 +23,10 @@ class RMSDAnalyzer{
 
     private:
 
-        double  rmsd(Eigen::MatrixX3d coords1, Eigen::MatrixX3d coords2);
-        void    kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2);
+        double                          rmsd(Eigen::MatrixX3d coords1, Eigen::MatrixX3d coords2);
+        void                            kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2);
+        void                            match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2);
+        std::vector<std::vector<int>>   spheres(std::vector<Atom_ptr> atoms, Atom_ptr atom);
 };
 
 
