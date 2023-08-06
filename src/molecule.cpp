@@ -14,7 +14,6 @@ int Molecule::compute_structure(std::string filepath){
     int res;
     res = this->read_xyz(filepath);
     if (!res){
-        std::cout << "\nFAILED READING XYZ FILE!\n";
         return 0;
     }
     this->set_connectivity();
@@ -85,18 +84,23 @@ int Molecule::read_xyz(std::string filepath)
 
 void Molecule::set_connectivity()
 {
-    int         i, j;
-    int         bond_order;
-    Bond_ptr    new_bond;
+    int                             bond_order;
+    Atom_ptr                        atom1;
+    Atom_ptr                        atom2;
+    Bond_ptr                        new_bond;
+    std::vector<Atom_ptr>::iterator i;
+    std::vector<Atom_ptr>::iterator j;
 
     this->bonds.clear();
 
-    for (Atom_ptr atom1: this->atoms){
-        for (Atom_ptr atom2: this->atoms){
-            bond_order = this->set_bond_order(atom1, atom2);
+    for (i = this->atoms.begin(); i != this->atoms.end(); i++){
+        for (j = std::next(i); j != this->atoms.end(); j++){
+            atom1 = (*i);
+            atom2 = (*j);
+            bond_order = this->set_bond_order(atom1, atom2);    
             if (bond_order){
-                atom1->bond_partners.push_back(atom2);
-                atom2->bond_partners.push_back(atom1);
+                atom1->bond_partners.push_back(atom2->index);
+                atom2->bond_partners.push_back(atom1->index);
                 new_bond = std::make_shared<Bond>();
                 new_bond->atom1 = atom1;
                 new_bond->atom2 = atom2;
@@ -105,6 +109,23 @@ void Molecule::set_connectivity()
             }
         }
     }
+
+    /*
+    for (Atom_ptr atom1: this->atoms){
+        for (Atom_ptr atom2: this->atoms){
+            bond_order = this->set_bond_order(atom1, atom2);    
+            if (bond_order){
+                atom1->bond_partners.push_back(atom2->index);
+                atom2->bond_partners.push_back(atom1->index);
+                new_bond = std::make_shared<Bond>();
+                new_bond->atom1 = atom1;
+                new_bond->atom2 = atom2;
+                new_bond->bond_order = bond_order;
+                this->bonds.push_back(new_bond);
+            }
+        }
+    }
+    */
 
     return;
 }

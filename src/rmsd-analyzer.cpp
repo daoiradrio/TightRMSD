@@ -37,7 +37,7 @@ void RMSDAnalyzer::match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_pt
 
 
 
-std::vector<std::vector<int>> RMSDAnalyzer::spheres(std::vector<Atom_ptr> atoms, Atom_ptr atom)
+std::vector<std::vector<int>> RMSDAnalyzer::spheres(Molecule& molecule, Atom_ptr start_atom)
 {
     std::vector<std::vector<int>>   spheres;
     std::vector<int>                new_sphere;
@@ -47,12 +47,12 @@ std::vector<std::vector<int>> RMSDAnalyzer::spheres(std::vector<Atom_ptr> atoms,
     int                             next_sphere_iter;
     std::vector<int>                memory;
 
-    current_sphere_iter = atom->bond_partners.size();
+    current_sphere_iter = start_atom->bond_partners.size();
     next_sphere_iter = 0;
-    memory = {atom->index};
+    memory = {start_atom->index};
 
-    for (Atom_ptr neighbor: atom->bond_partners){
-        next_atoms.push(neighbor);
+    for (int neighbor_index: start_atom->bond_partners){
+        next_atoms.push(molecule.atoms[neighbor_index]);
     }
 
     while (!next_atoms.empty()){
@@ -62,12 +62,12 @@ std::vector<std::vector<int>> RMSDAnalyzer::spheres(std::vector<Atom_ptr> atoms,
             next_atoms.pop();
             new_sphere.push_back(next_atom->pse_num);
             current_sphere_iter--;
-            for (Atom_ptr neighbor: next_atom->bond_partners){
-                if (std::find(memory.begin(), memory.end(), neighbor->index) != memory.end()){
+            for (int neighbor_index: next_atom->bond_partners){
+                if (std::find(memory.begin(), memory.end(), neighbor_index) != memory.end()){
                     continue;
                 }
-                memory.push_back(neighbor->index);
-                next_atoms.push(neighbor);
+                memory.push_back(neighbor_index);
+                next_atoms.push(molecule.atoms[neighbor_index]);
                 next_sphere_iter++;
             }
         }
