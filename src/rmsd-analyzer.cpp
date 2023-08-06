@@ -12,9 +12,8 @@ RMSDAnalyzer::~RMSDAnalyzer(){};
 
 void RMSDAnalyzer::compute_tight_rmsd(std::string file1, std::string file2)
 {
-    Molecule                mol1;
-    Molecule                mol2;
-    std::vector<Atom_ptr>   eq_atoms;
+    Molecule    mol1;
+    Molecule    mol2;
 
     mol1.compute_structure(file1);
     mol2.compute_structure(file2);
@@ -26,9 +25,13 @@ void RMSDAnalyzer::compute_tight_rmsd(std::string file1, std::string file2)
 
 void RMSDAnalyzer::match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
 {
+    std::vector<Atom_ptr>   eq_atoms;
+
     for (Atom_ptr atom1: atoms1){
         for (Atom_ptr atom2: atoms2){
-            continue;
+            if (this->spheres(atoms1, atom1) == this->spheres(atoms2, atom2)){
+                std::cout << "hier" << std::endl;
+            }
         }
     }
 
@@ -37,7 +40,7 @@ void RMSDAnalyzer::match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_pt
 
 
 
-std::vector<std::vector<int>> RMSDAnalyzer::spheres(Molecule& molecule, Atom_ptr start_atom)
+std::vector<std::vector<int>> RMSDAnalyzer::spheres(const std::vector<Atom_ptr>& atoms, const Atom_ptr& start_atom)
 {
     std::vector<std::vector<int>>   spheres;
     std::vector<int>                new_sphere;
@@ -52,7 +55,7 @@ std::vector<std::vector<int>> RMSDAnalyzer::spheres(Molecule& molecule, Atom_ptr
     memory = {start_atom->index};
 
     for (int neighbor_index: start_atom->bond_partners){
-        next_atoms.push(molecule.atoms[neighbor_index]);
+        next_atoms.push(atoms[neighbor_index]);
     }
 
     while (!next_atoms.empty()){
@@ -67,7 +70,7 @@ std::vector<std::vector<int>> RMSDAnalyzer::spheres(Molecule& molecule, Atom_ptr
                     continue;
                 }
                 memory.push_back(neighbor_index);
-                next_atoms.push(molecule.atoms[neighbor_index]);
+                next_atoms.push(atoms[neighbor_index]);
                 next_sphere_iter++;
             }
         }
