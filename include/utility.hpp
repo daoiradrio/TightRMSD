@@ -24,35 +24,40 @@ void                            match_atoms(std::vector<Atom_ptr> atoms1, std::v
 
 
 
-std::unordered_map<std::string, int> element_numbers({
-    {"H", 1},
-    {"B", 5},
-    {"C", 6},
-    {"N", 7},
-    {"O", 8},
-    {"F", 9},
-    {"Cl", 17},
-    {"Br", 35},
-    {"I", 53}
-});
+std::unordered_map<std::string, int> element_numbers(
+    {
+        {"H", 1},
+        {"B", 5},
+        {"C", 6},
+        {"N", 7},
+        {"O", 8},
+        {"F", 9},
+        {"Cl", 17},
+        {"Br", 35},
+        {"I", 53}
+    }
+);
 
 
 
-std::unordered_map<std::string, double> valence_radii_single({
-    {"C", 0.75},
-    {"N", 0.71},
-    {"O", 0.66},
-    {"H", 0.32},
-    {"B", 0.85},
-    {"F", 0.64},
-    {"Cl", 0.99},
-    {"Br", 1.14},
-    {"I", 1.33}
-});
+std::unordered_map<std::string, double> valence_radii_single(
+    {
+        {"C", 0.75},
+        {"N", 0.71},
+        {"O", 0.66},
+        {"H", 0.32},
+        {"B", 0.85},
+        {"F", 0.64},
+        {"Cl", 0.99},
+        {"Br", 1.14},
+        {"I", 1.33}
+    }
+);
 
 
 
-struct Atom{
+struct Atom
+{
     std::string             element;
     int                     pse_num;
     int                     index;
