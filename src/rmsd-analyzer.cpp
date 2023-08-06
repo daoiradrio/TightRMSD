@@ -18,6 +18,8 @@ void RMSDAnalyzer::compute_tight_rmsd(std::string file1, std::string file2)
     mol1.compute_structure(file1);
     mol2.compute_structure(file2);
 
+    this->match_atoms(mol1.atoms, mol2.atoms);
+
     return;
 }
 
@@ -25,15 +27,26 @@ void RMSDAnalyzer::compute_tight_rmsd(std::string file1, std::string file2)
 
 void RMSDAnalyzer::match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
 {
-    std::vector<Atom_ptr>   eq_atoms;
+    std::vector<std::vector<Atom_ptr>>  eq_atoms;
 
     for (Atom_ptr atom1: atoms1){
+        eq_atoms.push_back({});
         for (Atom_ptr atom2: atoms2){
             if (this->spheres(atoms1, atom1) == this->spheres(atoms2, atom2)){
-                std::cout << "hier" << std::endl;
+                eq_atoms.back().push_back(atom2);
             }
         }
+        if (eq_atoms.back().size() == 1){
+            continue;
+        }
+        else if (eq_atoms.back().size() > 1){
+            continue;
+        }
+        else{
+            continue;
+        }
     }
+
 
     return;
 }
