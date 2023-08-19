@@ -11,6 +11,9 @@
 #include <math.h>
 #include <queue>
 #include <algorithm>
+#include <utility>
+#include <Eigen/Dense>
+#include <Eigen/SVD>
 
 #define DIMENSION 3
 
@@ -21,6 +24,7 @@ std::vector<Atom_ptr>           compute_structure(std::string filepath);
 bool                            connected(const Atom_ptr& atom1, const Atom_ptr& atom2);
 std::vector<std::vector<int>>   spheres(const std::vector<Atom_ptr>& atoms, const Atom_ptr& start_atom);
 void                            match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2);
+void                            kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2);
 
 
 
@@ -61,8 +65,9 @@ struct Atom
     std::string             element;
     int                     pse_num;
     int                     index;
-    std::vector<double>     coords;
+    std::vector<double>         coords;
     std::vector<int>        bond_partners;
+    std::vector<Atom_ptr>   eq_atoms;
 
     Atom(): coords(DIMENSION, 0.0) {}
     ~Atom(){}
@@ -157,27 +162,49 @@ bool connected(const Atom_ptr& atom1, const Atom_ptr& atom2)
 
 // WIRD WAHRSCHEINLICH RETURN VALUE BRAUCHEN
 void match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
-{
-    std::vector<std::vector<Atom_ptr>>  eq_atoms;
+{   
+    int                                         i;
+    std::pair<Atom_ptr, Atom_ptr>               new_pair;
+    std::vector<std::pair<Atom_ptr, Atom_ptr>>  pairs;
+    Eigen::MatrixX3d                            matched_coords1;
+    Eigen::MatrixX3d                            matched_coords2;
+    Eigen::MatrixX3d                            D1;
+
+    i = 0;
+    matched_coords1.resize(atoms1.size(), 3);
+    matched_coords2.resize(atoms2.size(), 3);
 
     for (Atom_ptr atom1: atoms1){
-        eq_atoms.push_back({});
         for (Atom_ptr atom2: atoms2){
             if (spheres(atoms1, atom1) == spheres(atoms2, atom2)){
-                eq_atoms.back().push_back(atom2);
+                atom1->eq_atoms.push_back(atom2);
+                atom2->eq_atoms.push_back(atom1);
             }
         }
-        if (eq_atoms.back().size() == 1){
-            continue;
+        if (atom1->eq_atoms.size() == 1){
+            matched_coords1(i, 0) = atom1->coords[0];
+            matched_coords1(i, 1) = atom1->coords[1];
+            matched_coords1(i, 2) = atom1->coords[2];
+            matched_coords2(i, 0) = atom1->eq_atoms[0]->coords[0];
+            matched_coords2(i, 1) = atom1->eq_atoms[0]->coords[1];
+            matched_coords2(i, 2) = atom1->eq_atoms[0]->coords[2];
+            i++;
         }
-        else if (eq_atoms.back().size() > 1){
-            continue;
-        }
-        else{
+        else if (atom1->eq_atoms.empty()){
+            // HIER SECURITY OPTION (REIHENFOLGE UNVERÄNDERT ZURÜCKGEBEN)
             continue;
         }
     }
-
+    
+    for (Atom_ptr atom1: atoms1){
+        if (atom1->eq_atoms.size() == 1){
+            continue;
+        }
+        D1.resize(matched_coords1.rows(), atom1->eq_atoms.size());
+        for (Atom_ptr eq_atom: atom1->eq_atoms){
+            continue;
+        }
+    }
 
     return;
 }
@@ -225,6 +252,64 @@ std::vector<std::vector<int>> spheres(const std::vector<Atom_ptr>& atoms, const 
     }
 
     return spheres;
+}
+
+
+
+void kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2)
+{
+    int                 i;
+    double              det;
+    Eigen::Matrix3Xd    coords1_T;
+    Eigen::Matrix3Xd    coords2_T;
+    Eigen::MatrixX3d    H;
+    Eigen::Matrix3d     helper_mat;
+    Eigen::Matrix3d     R;
+    Eigen::Vector3d     center1;
+    Eigen::Vector3d     center2;
+    
+    center1 = {0.0, 0.0, 0.0};
+    center2 = {0.0, 0.0, 0.0};
+    for (i = 0; i < coords1.rows(); i++){
+        center1 = center1 + coords1.row(i).transpose();
+        center2 = center2 + coords2.row(i).transpose();
+    }
+    
+    center1 = (1.0/(double)coords1.rows()) * center1;
+    center2 = (1.0/(double)coords2.rows()) * center2;
+
+    for (i = 0; i < coords1.rows(); i++){
+        coords1.row(i) = coords1.row(i) - center1.transpose();
+        coords2.row(i) = coords2.row(i) - center2.transpose();
+    }
+    
+    coords1_T = coords1.transpose();
+
+    H = coords1_T * coords2;
+
+    //Eigen::JacobiSVD<Eigen::MatrixX3d> svd(H, Eigen::ComputeFullV | Eigen::ComputeFullU);
+    Eigen::BDCSVD<Eigen::MatrixX3d> svd(H, Eigen::ComputeFullV | Eigen::ComputeFullU);
+
+    det = (svd.matrixV() * svd.matrixU().transpose()).determinant();
+    
+    if (det >= 0.0){
+        det = 1.0;
+    }
+    else{
+        det = -1.0;
+    }
+
+    helper_mat << 1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, det;
+
+    R = (svd.matrixV() * helper_mat) * svd.matrixU().transpose();
+
+    for (i = 0; i < coords2.rows(); i++){
+        coords2.row(i) = coords2.row(i) * R;
+    }
+
+    return;
 }
 
 
