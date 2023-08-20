@@ -65,12 +65,9 @@ struct Atom
     std::string             element;
     int                     pse_num;
     int                     index;
-    std::vector<double>         coords;
+    Eigen::RowVector3d      coords;
     std::vector<int>        bond_partners;
     std::vector<Atom_ptr>   eq_atoms;
-
-    Atom(): coords(DIMENSION, 0.0) {}
-    ~Atom(){}
 };
 
 
@@ -99,7 +96,7 @@ std::vector<Atom_ptr> compute_structure(std::string filepath)
                 new_atom->element = element;
                 new_atom->pse_num = element_numbers[element];
                 new_atom->index = atom_index;
-                new_atom->coords = {xcoord, ycoord, zcoord};
+                new_atom->coords << xcoord, ycoord, zcoord;
                 atoms.push_back(std::move(new_atom));
                 atom_index++;
             }
@@ -107,7 +104,7 @@ std::vector<Atom_ptr> compute_structure(std::string filepath)
         }
     }
     else{
-        std::cout << "FAILED OPENING .xyz FILE!" << std::endl;
+        std::cout << "\nFAILED OPENING .xyz FILE!\n" << std::endl;
         return {};
     }
     file.close();
@@ -142,9 +139,9 @@ bool connected(const Atom_ptr& atom1, const Atom_ptr& atom2)
     double valence_radius_single2 = valence_radii_single[atom2->element];
 
     double distance = sqrt(
-        pow((atom1->coords[0] - atom2->coords[0]), 2) +
-        pow((atom1->coords[1] - atom2->coords[1]), 2) +
-        pow((atom1->coords[2] - atom2->coords[2]), 2)
+        pow((atom1->coords(0) - atom2->coords(0)), 2) +
+        pow((atom1->coords(1) - atom2->coords(1)), 2) +
+        pow((atom1->coords(2) - atom2->coords(2)), 2)
     );
 
     if (valence_radius_single1 && valence_radius_single2){
@@ -161,18 +158,22 @@ bool connected(const Atom_ptr& atom1, const Atom_ptr& atom2)
 
 
 // WIRD WAHRSCHEINLICH RETURN VALUE BRAUCHEN
-void match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
-{   
-    int                                         i;
-    std::pair<Atom_ptr, Atom_ptr>               new_pair;
-    std::vector<std::pair<Atom_ptr, Atom_ptr>>  pairs;
-    Eigen::MatrixX3d                            matched_coords1;
-    Eigen::MatrixX3d                            matched_coords2;
-    Eigen::MatrixX3d                            D1;
+void match_atoms(
+    const std::vector<Atom_ptr>&    atoms1,
+    const std::vector<Atom_ptr>&    atoms2,
+    Eigen::MatrixX3d&               coords1,
+    Eigen::MatrixX3d&               coords2
+){   
+    int                                         i, j;
+    double                                      deviation;
+    double                                      min;
+    Atom_ptr                                    min_atom;
+    Eigen::VectorXd                             d_ref;
+    Eigen::VectorXd                             d;
 
     i = 0;
-    matched_coords1.resize(atoms1.size(), 3);
-    matched_coords2.resize(atoms2.size(), 3);
+    coords1.resize(atoms1.size(), 3);
+    coords2.resize(atoms2.size(), 3);
 
     for (Atom_ptr atom1: atoms1){
         for (Atom_ptr atom2: atoms2){
@@ -182,12 +183,8 @@ void match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
             }
         }
         if (atom1->eq_atoms.size() == 1){
-            matched_coords1(i, 0) = atom1->coords[0];
-            matched_coords1(i, 1) = atom1->coords[1];
-            matched_coords1(i, 2) = atom1->coords[2];
-            matched_coords2(i, 0) = atom1->eq_atoms[0]->coords[0];
-            matched_coords2(i, 1) = atom1->eq_atoms[0]->coords[1];
-            matched_coords2(i, 2) = atom1->eq_atoms[0]->coords[2];
+            coords1.block<1,3>(i,0) = atom1->coords;
+            coords2.block<1,3>(i,0) = atom1->eq_atoms[0]->coords;
             i++;
         }
         else if (atom1->eq_atoms.empty()){
@@ -195,15 +192,31 @@ void match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2)
             continue;
         }
     }
+
+    d_ref.resize(coords1.rows());
+    d.resize(coords2.rows());
     
     for (Atom_ptr atom1: atoms1){
         if (atom1->eq_atoms.size() == 1){
             continue;
         }
-        D1.resize(matched_coords1.rows(), atom1->eq_atoms.size());
-        for (Atom_ptr eq_atom: atom1->eq_atoms){
-            continue;
+        for (j = 0; j < coords1.rows(); j++){
+            d_ref(j) = (atom1->coords - coords1.row(j)).norm();
         }
+        min = 1000000.0;
+        for (Atom_ptr atom2: atom1->eq_atoms){
+            for (j = 0; j < coords2.rows(); j++){
+                d(j) = (atom2->coords - coords2.row(j)).norm();
+            }
+            deviation = (d - d_ref).norm();
+            if (deviation < min){
+                min = deviation;
+                min_atom = atom2;
+            }
+        }
+        coords1.block<1,3>(i,0) = atom1->coords;
+        coords2.block<1,3>(i,0) = min_atom->coords;
+        i++;
     }
 
     return;

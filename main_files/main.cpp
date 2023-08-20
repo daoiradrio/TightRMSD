@@ -1,4 +1,5 @@
 #include <iostream>
+#include <Eigen/Dense>
 #include <utility.hpp>
 
 
@@ -12,8 +13,13 @@ int main(int argc, char* argv[])
     std::string file1 = argv[1];
     std::string file2 = argv[2];
 
+    Eigen::MatrixX3d matched_coords1;
+    Eigen::MatrixX3d matched_coords2;
+
     std::vector<Atom_ptr> atoms1 = compute_structure(file1);
     std::vector<Atom_ptr> atoms2 = compute_structure(file2);
+
+    match_atoms(atoms1, atoms2, matched_coords1, matched_coords2);
     
     return 0;
 }
