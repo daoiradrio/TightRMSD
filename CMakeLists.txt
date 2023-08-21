@@ -11,7 +11,7 @@ include_directories(include)
 
 file(GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
-add_executable(tight-rmsd main_files/main.cpp ${SRC_FILES})
+add_executable(tight-rmsd main_file/main.cpp ${SRC_FILES})
 
 include(FetchContent)
 FetchContent_Declare(
