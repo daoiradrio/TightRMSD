@@ -23,8 +23,15 @@ using Atom_ptr = std::shared_ptr<Atom>;
 std::vector<Atom_ptr>           compute_structure(std::string filepath);
 bool                            connected(const Atom_ptr& atom1, const Atom_ptr& atom2);
 std::vector<std::vector<int>>   spheres(const std::vector<Atom_ptr>& atoms, const Atom_ptr& start_atom);
-void                            match_atoms(std::vector<Atom_ptr> atoms1, std::vector<Atom_ptr> atoms2);
+void                            match_atoms(
+                                    const std::vector<Atom_ptr>&    atoms1,
+                                    const std::vector<Atom_ptr>&    atoms2,
+                                    Eigen::MatrixX3d&               coords1,
+                                    Eigen::MatrixX3d&               coords2
+                                );
 void                            kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2);
+double                          rmsd(Eigen::MatrixX3d coords1, Eigen::MatrixX3d coords2);
+double                          tight_rmsd(std::string file1, std::string file2);
 
 
 
@@ -69,6 +76,25 @@ struct Atom
     std::vector<int>    bond_partners;
     std::vector<int>    eq_atoms;
 };
+
+
+
+double tight_rmsd(std::string file1, std::string file2)
+{
+    std::vector<Atom_ptr>   atoms1;
+    std::vector<Atom_ptr>   atoms2;
+    Eigen::MatrixX3d        matched_coords1;
+    Eigen::MatrixX3d        matched_coords2;
+
+    atoms1 = compute_structure(file1);
+    atoms2 = compute_structure(file2);
+
+    match_atoms(atoms1, atoms2, matched_coords1, matched_coords2);
+
+    kabsch(matched_coords1, matched_coords2);
+
+    return rmsd(matched_coords1, matched_coords2);
+}
 
 
 
@@ -157,7 +183,6 @@ bool connected(const Atom_ptr& atom1, const Atom_ptr& atom2)
 
 
 
-// WIRD WAHRSCHEINLICH RETURN VALUE BRAUCHEN
 void match_atoms(
     const std::vector<Atom_ptr>&    atoms1,
     const std::vector<Atom_ptr>&    atoms2,
