@@ -67,7 +67,6 @@ struct Atom
     int                 index;
     Eigen::RowVector3d  coords;
     std::vector<int>    bond_partners;
-    //std::vector<Atom_ptr>   eq_atoms;
     std::vector<int>    eq_atoms;
 };
 
@@ -187,7 +186,6 @@ void match_atoms(
         if (atom1->eq_atoms.size() == 1){
             atom2 = atoms2[atom1->eq_atoms[0]];
             coords1.block<1,3>(i,0) = atom1->coords;
-            //coords2.block<1,3>(i,0) = atom1->eq_atoms[0]->coords;
             coords2.block<1,3>(i,0) = atom2->coords;
             i++;
         }

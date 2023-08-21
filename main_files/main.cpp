@@ -24,9 +24,6 @@ int main(int argc, char* argv[])
     kabsch(matched_coords1, matched_coords2);
 
     std::cout << rmsd(matched_coords1, matched_coords2) << std::endl;
-
-    //std::cout << matched_coords1.rows() << " " << matched_coords1.cols() << std::endl;
-    //std::cout << matched_coords2.rows() << " " << matched_coords2.cols() << std::endl;
     
     return 0;
 }

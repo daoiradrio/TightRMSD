@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/utility.hpp
+string
+-
+memory
+-
+vector
+-
+unordered_map
+-
+fstream
+-
+sstream
+-
+iostream
+-
+math.h
+-
+queue
+-
+algorithm
+-
+utility
+-
+Eigen/Dense
+-
+Eigen/SVD
+-
+
+/home/baum/TightRMSD/main_files/main.cpp
+iostream
+-
+Eigen/Dense
+-
+utility.hpp
+-
+
