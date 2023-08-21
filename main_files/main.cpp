@@ -20,6 +20,13 @@ int main(int argc, char* argv[])
     std::vector<Atom_ptr> atoms2 = compute_structure(file2);
 
     match_atoms(atoms1, atoms2, matched_coords1, matched_coords2);
+
+    kabsch(matched_coords1, matched_coords2);
+
+    std::cout << rmsd(matched_coords1, matched_coords2) << std::endl;
+
+    //std::cout << matched_coords1.rows() << " " << matched_coords1.cols() << std::endl;
+    //std::cout << matched_coords2.rows() << " " << matched_coords2.cols() << std::endl;
     
     return 0;
 }

@@ -62,12 +62,13 @@ std::unordered_map<std::string, double> valence_radii_single(
 
 struct Atom
 {
-    std::string             element;
-    int                     pse_num;
-    int                     index;
-    Eigen::RowVector3d      coords;
-    std::vector<int>        bond_partners;
-    std::vector<Atom_ptr>   eq_atoms;
+    std::string         element;
+    int                 pse_num;
+    int                 index;
+    Eigen::RowVector3d  coords;
+    std::vector<int>    bond_partners;
+    //std::vector<Atom_ptr>   eq_atoms;
+    std::vector<int>    eq_atoms;
 };
 
 
@@ -168,6 +169,7 @@ void match_atoms(
     double                                      deviation;
     double                                      min;
     Atom_ptr                                    min_atom;
+    Atom_ptr                                    atom2;
     Eigen::VectorXd                             d_ref;
     Eigen::VectorXd                             d;
 
@@ -178,13 +180,15 @@ void match_atoms(
     for (Atom_ptr atom1: atoms1){
         for (Atom_ptr atom2: atoms2){
             if (spheres(atoms1, atom1) == spheres(atoms2, atom2)){
-                atom1->eq_atoms.push_back(atom2);
-                atom2->eq_atoms.push_back(atom1);
+                atom1->eq_atoms.push_back(atom2->index);
+                atom2->eq_atoms.push_back(atom1->index);
             }
         }
         if (atom1->eq_atoms.size() == 1){
+            atom2 = atoms2[atom1->eq_atoms[0]];
             coords1.block<1,3>(i,0) = atom1->coords;
-            coords2.block<1,3>(i,0) = atom1->eq_atoms[0]->coords;
+            //coords2.block<1,3>(i,0) = atom1->eq_atoms[0]->coords;
+            coords2.block<1,3>(i,0) = atom2->coords;
             i++;
         }
         else if (atom1->eq_atoms.empty()){
@@ -204,7 +208,8 @@ void match_atoms(
             d_ref(j) = (atom1->coords - coords1.row(j)).norm();
         }
         min = 1000000.0;
-        for (Atom_ptr atom2: atom1->eq_atoms){
+        for (int index_atom2: atom1->eq_atoms){
+            atom2 = atoms2[index_atom2];
             for (j = 0; j < coords2.rows(); j++){
                 d(j) = (atom2->coords - coords2.row(j)).norm();
             }
@@ -323,6 +328,25 @@ void kabsch(Eigen::MatrixX3d& coords1, Eigen::MatrixX3d& coords2)
     }
 
     return;
+}
+
+
+
+double rmsd(Eigen::MatrixX3d coords1, Eigen::MatrixX3d coords2)
+{
+    int             i;
+    int             n = coords1.rows();
+    double          rmsd = 0.0;
+    Eigen::Vector3d diff_vec;
+
+    for (i = 0; i < n; i++){
+        diff_vec = coords1.row(i) - coords2.row(i);
+        rmsd    += diff_vec.dot(diff_vec);
+    }
+    rmsd = (1.0/(double)n) * rmsd;
+    rmsd = sqrt(rmsd);
+
+    return rmsd;
 }
 
 
